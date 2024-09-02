@@ -1,0 +1,40 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+
+jobs:
+  cd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Project checkout
+        uses: actions/checkout@v4
+
+      - name: Node initialize
+        uses: actions/setup-node@v4
+
+      - name: Cache node_modules
+        id: cache__node_modules
+        uses: actions/cache@v4
+        with:
+          path: '**/node_modules'
+
+      - name: Install Node Modules
+        run: npm ci
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Publish to Github Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_branch: 'gh-pages'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
+
+
